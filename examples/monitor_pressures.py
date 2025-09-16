@@ -14,7 +14,7 @@ try:
     # Prefer the synchronous helper for scripts. If this raises because an
     # event loop is already running, the user should call
     # `await adiscover_metexon(...)` from their async context instead.
-    found = discover_metexon(timeout=5.0)
+    found = discover_metexon(timeout=10.0)
 except RuntimeError as exc:
     raise SystemExit(
         "discover_metexon cannot be used here because an event loop is running; "

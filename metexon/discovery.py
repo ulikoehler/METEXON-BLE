@@ -41,7 +41,7 @@ async def adiscover_metexon(timeout: float = 5.0, filter_by: str = "name") -> Li
             })
     return result
 
-def discover_metexon(timeout: float = 5.0, filter_by: str = "name") -> List[dict]:
+def discover_metexon(timeout: float = 10.0, filter_by: str = "name") -> List[dict]:
     """Synchronous wrapper for `adiscover_metexon`.
 
     See `filter_by` semantics in `adiscover_metexon`.
