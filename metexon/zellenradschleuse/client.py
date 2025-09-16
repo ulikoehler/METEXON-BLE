@@ -8,13 +8,12 @@ from ..base import BaseMetexonDevice
 from .constants import (
     DEVICE_TYPE_UUID,
     SYSTEM_STATE_UUID,
-    RGB_LED_UUID,
     BLOWER_PID_UUID,
     WIFI_UUID,
     OTA_UUID,
     MANUAL_CONTROL_UUID,
 )
-from .structures import SystemState, ManualControl, BlowerPID
+from .structures import SystemState, ManualControl, BlowerPID, RGB
 
 class ZellenradschleuseClient(BaseMetexonDevice):
     """Client with typed return values.
@@ -49,20 +48,21 @@ class ZellenradschleuseClient(BaseMetexonDevice):
         self._run(self.client.write_gatt_char(MANUAL_CONTROL_UUID, value.to_bytes()))
 
     def read_rgb_led(self) -> List[tuple[int,int,int]]:
-        data = self._run(self.client.read_gatt_char(RGB_LED_UUID))
-        leds: List[tuple[int,int,int]] = []
-        for i in range(0, len(data), 3):
-            chunk = data[i:i+3]
-            if len(chunk) == 3:
-                leds.append((chunk[0], chunk[1], chunk[2]))
-        return leds
+        # RGB is part of the SystemState structure; read and extract it there.
+        ss = self.read_system_state()
+        return [c.to_tuple() for c in ss.rgb]
 
     def write_rgb_led(self, colors: Iterable[Iterable[int]]) -> None:
-        flat: List[int] = []
+        # To update the RGB LEDs we modify the SystemState.rgb field and write
+        # the whole SystemState back. This matches firmware behaviour where the
+        # LEDs are part of the system state structure.
+        ss = self.read_system_state()
+        rgb_objs = []
         for c in colors:
             r, g, b = list(c)
-            flat.extend([r & 0xFF, g & 0xFF, b & 0xFF])
-        self._run(self.client.write_gatt_char(RGB_LED_UUID, bytes(flat)))
+            rgb_objs.append(RGB(r, g, b))
+        ss.rgb = rgb_objs
+        self.write_system_state(ss)
 
     def wifi_status(self) -> Dict[str, Any]:
         data = self._run(self.client.read_gatt_char(WIFI_UUID))

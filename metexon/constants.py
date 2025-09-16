@@ -25,31 +25,31 @@ def _uuid_from_le_bytes(byte_list: list[int]) -> UUID:
     return UUID(bytes=bytes(reversed(byte_list)))
 
 
-# Raw byte definitions copied from firmware (BLE_UUID128_INIT order)
+# Raw byte definitions copied from firmware (BLE_UUID128_INIT order) for items
+# where a canonical UUID string has not been explicitly supplied. We still
+# include the service and RGB LED via byte form (canonical strings were not
+# provided), while all other characteristics use the authoritative UUID
+# strings published by firmware / documentation below.
 _SERVICE_BYTES = [0xAA, 0x85, 0x9E, 0x5F, 0xDD, 0x5A, 0x82, 0x42, 0x81, 0x84, 0xC4, 0xE1, 0x23, 0x5F, 0x35, 0x42]
-_DEVICE_TYPE_BYTES = [0xA0, 0xAF, 0x5C, 0xCA, 0xB2, 0x97, 0xDF, 0x4F, 0xBC, 0xC2, 0xFA, 0x6B, 0x78, 0xB7, 0xF7, 0x68]
-_SYSTEM_STATE_BYTES = [0x68, 0x87, 0x98, 0x89, 0x0F, 0xFE, 0xAC, 0x4F, 0xAD, 0x0D, 0xF0, 0xDB, 0x24, 0xF6, 0xB1, 0x2F]
 _RGB_LED_BYTES = [0x6C, 0xD5, 0xD1, 0x16, 0x9A, 0x35, 0x54, 0x4B, 0xBA, 0xCC, 0x47, 0xF1, 0x94, 0x0F, 0x37, 0x95]
-_BLOWER_PID_BYTES = [0x4C, 0x38, 0x61, 0x23, 0x01, 0xBB, 0xA4, 0x41, 0x8F, 0x1B, 0x41, 0x8F, 0x95, 0x13, 0xC0, 0x60]
-_WIFI_BYTES = [0xBD, 0xDA, 0x5D, 0x96, 0xF0, 0xF6, 0x7F, 0x45, 0x9C, 0x6D, 0x59, 0xF5, 0xB4, 0x6C, 0x77, 0x07]
-_OTA_BYTES = [0x3E, 0x2D, 0x88, 0xB7, 0xEA, 0xED, 0x19, 0x43, 0x91, 0xB8, 0xD2, 0x04, 0x5F, 0x85, 0xD1, 0x2C]
-_MANUAL_CONTROL_BYTES = [0x7B, 0xC1, 0x42, 0x5E, 0x11, 0xAA, 0x4D, 0x49, 0xA7, 0x77, 0xC5, 0x31, 0x9F, 0x42, 0xB3, 0x56]
-
 
 METEXON_SERVICE_UUID = _uuid_from_le_bytes(_SERVICE_BYTES)
-DEVICE_TYPE_UUID = _uuid_from_le_bytes(_DEVICE_TYPE_BYTES)
-SYSTEM_STATE_UUID = _uuid_from_le_bytes(_SYSTEM_STATE_BYTES)
-RGB_LED_UUID = _uuid_from_le_bytes(_RGB_LED_BYTES)
-BLOWER_PID_UUID = _uuid_from_le_bytes(_BLOWER_PID_BYTES)
-WIFI_UUID = _uuid_from_le_bytes(_WIFI_BYTES)
-OTA_UUID = _uuid_from_le_bytes(_OTA_BYTES)
-MANUAL_CONTROL_UUID = _uuid_from_le_bytes(_MANUAL_CONTROL_BYTES)
+# RGB is handled via the SystemState structure; we keep the raw bytes defined for
+# reference but do not expose a separate characteristic UUID in the codebase.
+
+# Canonical UUID strings for remaining characteristics (authoritative forms)
+DEVICE_TYPE_UUID = UUID("68F7B778-6BFA-C2BC-4FDF-97B2CA5CAFA0")
+SYSTEM_STATE_UUID = UUID("2FB1F624-DBF0-0DAD-4FAC-FE0F89988768")
+MANUAL_CONTROL_UUID = UUID("56B3429F-31C5-77A7-494D-AA115E42C17B")
+BLOWER_PID_UUID = UUID("60C01395-8F41-1B8F-41A4-BB012361384C")
+OTA_UUID = UUID("2CD1855F-04D2-B891-4319-EDEAB7882D3E")
+WIFI_UUID = UUID("07776CB4-F559-6D9C-457F-F6F0965DDABD")
 
 ALL_UUIDS = {
     "service": METEXON_SERVICE_UUID,
     "device_type": DEVICE_TYPE_UUID,
     "system_state": SYSTEM_STATE_UUID,
-    "rgb_led": RGB_LED_UUID,
+    # rgb_led removed: RGB is part of the system_state characteristic
     "blower_pid": BLOWER_PID_UUID,
     "wifi": WIFI_UUID,
     "ota": OTA_UUID,
@@ -60,7 +60,6 @@ __all__ = [
     "METEXON_SERVICE_UUID",
     "DEVICE_TYPE_UUID",
     "SYSTEM_STATE_UUID",
-    "RGB_LED_UUID",
     "BLOWER_PID_UUID",
     "WIFI_UUID",
     "OTA_UUID",

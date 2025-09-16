@@ -40,10 +40,13 @@ class AsyncLoopThread:
         return self.run(self._call(func, *args, **kwargs))
 
     async def _shutdown(self) -> None:
-        tasks = [t for t in asyncio.all_tasks(loop=self._loop) if not t.done()]
+        # Exclude the current shutdown task itself to avoid self-cancellation
+        current = asyncio.current_task(loop=self._loop)
+        tasks = [t for t in asyncio.all_tasks(loop=self._loop) if t is not current and not t.done()]
         for t in tasks:
             t.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
         self._loop.stop()
 
     async def _call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
@@ -56,5 +59,16 @@ class AsyncLoopThread:
             asyncio.run_coroutine_threadsafe(self._shutdown(), self._loop).result(timeout=2)
         finally:
             self._closed = True
+            # Give the loop a moment to stop and then close it.
+            try:
+                self._thread.join(timeout=0.5)
+            except RuntimeError:
+                # Thread may not start or join if already terminated
+                pass
+            try:
+                self._loop.close()
+            except RuntimeError:
+                # Loop may already be closed
+                pass
 
 __all__ = ["AsyncLoopThread"]

@@ -7,8 +7,12 @@ from .constants import METEXON_SERVICE_UUID
 
 __all__ = ["discover_metexon", "adiscover_metexon"]
 
-async def adiscover_metexon(timeout: float = 5.0) -> List[dict]:
-    """Async discover devices advertising the Metexon primary service.
+async def adiscover_metexon(timeout: float = 5.0, filter_by: str = "name") -> List[dict]:
+    """Async discover Metexon devices.
+
+    filter_by controls which matching strategy to use:
+      - "name": include devices whose advertised name contains "METEXON" (case-insensitive). This is the default.
+      - "service": include devices that advertise the Metexon primary service UUID.
 
     Returns a list of dictionaries with keys: address, name, rssi.
     """
@@ -16,9 +20,20 @@ async def adiscover_metexon(timeout: float = 5.0) -> List[dict]:
     result = []
     svc_str = str(METEXON_SERVICE_UUID)
     for d in devices:
+        name = (d.name or "")
         metadata = getattr(d, 'metadata', {}) or {}
         uuids = metadata.get('uuids') or []
-        if svc_str.lower() in [u.lower() for u in uuids]:
+        match = False
+        if filter_by == "name":
+            if "metexon" in name.lower():
+                match = True
+        elif filter_by == "service":
+            if svc_str.lower() in [u.lower() for u in uuids]:
+                match = True
+        else:
+            raise ValueError(f"Unknown filter_by value: {filter_by!r}; expected 'name' or 'service'")
+
+        if match:
             result.append({
                 'address': d.address,
                 'name': d.name,
@@ -26,8 +41,11 @@ async def adiscover_metexon(timeout: float = 5.0) -> List[dict]:
             })
     return result
 
-def discover_metexon(timeout: float = 5.0) -> List[dict]:
-    """Synchronous wrapper for `adiscover_metexon`."""
+def discover_metexon(timeout: float = 5.0, filter_by: str = "name") -> List[dict]:
+    """Synchronous wrapper for `adiscover_metexon`.
+
+    See `filter_by` semantics in `adiscover_metexon`.
+    """
     import asyncio
     try:
         loop = asyncio.get_running_loop()
@@ -36,4 +54,4 @@ def discover_metexon(timeout: float = 5.0) -> List[dict]:
     if loop and loop.is_running():
         # Caller already in event loop; user should call adiscover_metexon directly.
         raise RuntimeError("discover_metexon cannot run inside an existing event loop; use adiscover_metexon")
-    return asyncio.run(adiscover_metexon(timeout=timeout))
+    return asyncio.run(adiscover_metexon(timeout=timeout, filter_by=filter_by))

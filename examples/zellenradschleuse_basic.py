@@ -4,7 +4,6 @@ Run: python examples/zellenradschleuse_basic.py
 """
 from metexon import discover_metexon
 from metexon.zellenradschleuse import ZellenradschleuseClient
-from metexon.zellenradschleuse.update_helpers import partial_manual_control
 
 # Discover devices
 print("Discovering Metexon devices...")
@@ -23,14 +22,9 @@ with ZellenradschleuseClient(addr) as dev:
     state = dev.read_system_state()
     print("Initial system state:", state.to_json())
 
-    # Example partial manual control update (set feeder for 2s) leaving others unchanged
-    mc = partial_manual_control(feeder_seconds=2.0)
-    dev.write_manual_control(mc)
-    print("Sent manual control request (feeder_seconds=2.0)")
-
-    # Change LEDs: red then blue
-    dev.write_rgb_led([(255,0,0), (0,0,255)])
-    print("Updated LEDs to red & blue")
+    # Change LEDs: green then blue
+    dev.write_rgb_led([(0,255,0), (0,0,255)])
+    print("Updated LEDs to green & blue")
 
     # Re-read system state (may reflect changes depending on firmware refresh timing)
     updated = dev.read_system_state()
