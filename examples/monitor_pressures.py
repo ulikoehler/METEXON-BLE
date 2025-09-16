@@ -4,11 +4,23 @@
 Run: python examples/monitor_pressures.py
 """
 import time
-from metexon import discover_metexon
+from metexon import discover_metexon, adiscover_metexon
 from metexon.zellenradschleuse import ZellenradschleuseClient
 
-# Discover a device (quick scan)
-found = discover_metexon(timeout=5.0)
+# Discover a device (quick scan). Prefer sync helper; callers that already run an
+# event loop should call `adiscover_metexon` directly. For convenience we try
+# to detect a running loop and fall back to the async function when needed.
+try:
+    # Prefer the synchronous helper for scripts. If this raises because an
+    # event loop is already running, the user should call
+    # `await adiscover_metexon(...)` from their async context instead.
+    found = discover_metexon(timeout=5.0)
+except RuntimeError as exc:
+    raise SystemExit(
+        "discover_metexon cannot be used here because an event loop is running; "
+        "call adiscover_metexon from an async context instead: `found = await adiscover_metexon(...)`"
+    )
+
 if not found:
     print("No Metexon devices found.")
     raise SystemExit(1)

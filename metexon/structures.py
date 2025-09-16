@@ -129,8 +129,18 @@ class SystemState:
         )
 
     def to_json(self) -> Dict[str, Any]:
+        # Quantize floats to IEEE-754 single-precision so JSON representation
+        # matches the packed/unpacked values used by to_bytes()/from_bytes().
+        def f32(v: float) -> float:
+            return struct.unpack('<f', struct.pack('<f', float(v)))[0]
+
         d = asdict(self)
         d['rgb'] = [c.to_tuple() for c in self.rgb]
+        d['pressure1'] = f32(d['pressure1'])
+        d['pressure2'] = f32(d['pressure2'])
+        d['absPressure'] = f32(d['absPressure'])
+        d['motorCurrent'] = f32(d['motorCurrent'])
+        d['blowerPulseRateRPM'] = f32(d['blowerPulseRateRPM'])
         return d
 
     @classmethod
@@ -190,8 +200,15 @@ class ManualControl:
         )
 
     def to_json(self) -> Dict[str, Any]:
+        def f32(v: float) -> float:
+            return struct.unpack('<f', struct.pack('<f', float(v)))[0]
+
         d = asdict(self)
         d['reserved'] = list(self.reserved)
+        d['blower_rpm'] = f32(d['blower_rpm'])
+        d['getriebemotor_pwm'] = f32(d['getriebemotor_pwm'])
+        d['vibrationsmotor_pwm'] = f32(d['vibrationsmotor_pwm'])
+        d['feeder_seconds'] = f32(d['feeder_seconds'])
         return d
 
     @classmethod
@@ -223,7 +240,7 @@ class ManualControl:
 #   float derivative_filter_hz;
 #   float reserved_floats[4];
 # } <= 128 bytes
-_BLOWER_PID_STRUCT = struct.Struct('<ffffffHHHHIIIff4f')
+_BLOWER_PID_STRUCT = struct.Struct('<fffffffHHHHIIIff4f')
 
 @dataclass
 class BlowerPID:
@@ -292,8 +309,27 @@ class BlowerPID:
         )
 
     def to_json(self) -> Dict[str, Any]:
+        def f32(v: float) -> float:
+            return struct.unpack('<f', struct.pack('<f', float(v)))[0]
+
         d = asdict(self)
-        d['reserved_floats'] = list(self.reserved_floats)
+        # Quantize all floats to 32-bit precision to match binary roundtrip
+        d['kp'] = f32(d['kp'])
+        d['ki'] = f32(d['ki'])
+        d['kd'] = f32(d['kd'])
+        d['target_frequency'] = f32(d['target_frequency'])
+        d['current_frequency'] = f32(d['current_frequency'])
+        d['last_error'] = f32(d['last_error'])
+        d['integral_sum'] = f32(d['integral_sum'])
+        d['feed_forward'] = f32(d['feed_forward'])
+        d['derivative_filter_hz'] = f32(d['derivative_filter_hz'])
+        # Represent NaN reserved slots as None so JSON/list equality works when
+        # comparing round-tripped structures (NaN != NaN breaks direct list
+        # comparisons).
+        def _nan_safe(x: float):
+            return None if math.isnan(x) else f32(x)
+
+        d['reserved_floats'] = [_nan_safe(x) for x in d['reserved_floats']]
         return d
 
     @classmethod

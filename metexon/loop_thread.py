@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import logging
 from typing import Any, Coroutine, TypeVar, Callable
 from concurrent.futures import Future
+from concurrent.futures import TimeoutError as FutureTimeoutError
 
 T = TypeVar('T')
 
@@ -56,7 +58,12 @@ class AsyncLoopThread:
         if self._closed:
             return
         try:
-            asyncio.run_coroutine_threadsafe(self._shutdown(), self._loop).result(timeout=2)
+            try:
+                asyncio.run_coroutine_threadsafe(self._shutdown(), self._loop).result(timeout=2)
+            except (FutureTimeoutError, TimeoutError):
+                # Shutdown timed out. Treating as successful close: log and continue.
+                logging.getLogger(__name__).warning(
+                    "Timeout while waiting for loop thread shutdown; continuing to close.")
         finally:
             self._closed = True
             # Give the loop a moment to stop and then close it.
