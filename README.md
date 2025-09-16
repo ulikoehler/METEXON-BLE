@@ -18,43 +18,44 @@ This repository now contains a Python package `metexon` that provides a high-lev
 pip install -e .
 ```
 
-### Basic Usage
+### Basic Usage (typed client)
+
+Use the typed `ZellenradschleuseClient` for structured dataclasses and helper
+functions. This example shows reading system state and blower PID, and doing a
+partial PID update using the provided helpers.
 
 ```python
-from metexon import Zellenradschleuse
+from metexon import discover_metexon
+from metexon.zellenradschleuse import ZellenradschleuseClient
+from metexon.zellenradschleuse.update_helpers import partial_blower_pid
 
-DEVICE_MAC = "AA:BB:CC:DD:EE:FF"  # replace with your device
+# Discover a device (5s timeout)
+found = discover_metexon(timeout=5.0)
+if not found:
+	raise SystemExit("No Metexon device found")
+addr = found[0]["address"]
 
-with Zellenradschleuse(mac=DEVICE_MAC) as zr:
+with ZellenradschleuseClient(addr) as zr:
 	print("Device type:", zr.device_type())
 
-	state = zr.system_state()  # returns dict representing SystemStateBinary
-	print("System state:", state)
+	# Typed dataclass representing system state
+	ss = zr.read_system_state()
+	print("System state:", ss.to_json())
 
-	# Update (example: change LED colors) using dedicated helper
+	# Read typed BlowerPID dataclass
+	pid = zr.read_blower_pid()
+	print("Blower PID:", pid)
+
+	# Apply a partial update: change Kp only, keep other fields unchanged
+	partial = partial_blower_pid(kp=pid.kp * 1.1)
+	zr.write_blower_pid(partial)
+	print("Wrote partial PID update:", partial)
+
+	# Set RGB LEDs using the typed helper
 	zr.set_rgb_led([(255, 0, 0), (0, 0, 255)])
 
-	# Read PID
-	pid = zr.blower_pid()
-	print("PID:", pid)
-
-	# Write partial PID update (NaN / sentinel semantics handled firmware-side)
-	zr.set_blower_pid({"kp": 1.2, "ki": 0.05, "kd": 0.01})
-
-	# Trigger OTA update
-	# zr.start_ota("https://example.com/firmware.bin")
-
-	# WiFi configuration
-	wifi = zr.wifi_status()
-	print("WiFi:", wifi)
-	# zr.set_wifi(ssid="MySSID", password="secret")
-
-	# Manual control example: run blower at 1200 rpm for 5 seconds feeder
-	zr.set_manual_control({
-		"blower_rpm": 1200.0,
-		"feeder_seconds": 5.0,
-		"enable_getriebemotor_nvs": 1,
-	})
+	# Manual control example using typed structure helper
+	zr.write_manual_control({"blower_rpm": 1200.0, "feeder_seconds": 5.0, "enable_getriebemotor_nvs": 1})
 ```
 
 ### Returned Data Structures
@@ -63,22 +64,22 @@ Methods like `system_state()`, `blower_pid()`, and `manual_control()` return ord
 
 ### Async Usage
 
-If you prefer to manage your own asyncio loop:
+Async access to the typed client is available via the `metexon.zellenradschleuse`
+async client. Example using the async typed client:
 
 ```python
 import asyncio
-from bleak import BleakClient
-from metexon.client import Zellenradschleuse
+from metexon.zellenradschleuse.client import ZellenradschleuseClient as AsyncClient
 
 async def main():
-	zr = Zellenradschleuse(mac="AA:BB:CC:DD:EE:FF")
-	await zr._connect()  # internal; you can also adapt pattern to expose a public async enter
+	c = AsyncClient("AA:BB:CC:DD:EE:FF")
+	await c._connect()
 	try:
-		print(await zr.adevice_type())
-		ss = await zr.asystem_state()
+		print(await c.adevice_type())
+		ss = await c.asystem_state()
 		print(ss.to_json())
 	finally:
-		await zr._disconnect()
+		await c._disconnect()
 
 asyncio.run(main())
 ```
@@ -117,8 +118,9 @@ with ZellenradschleuseClient("AA:BB:CC:DD:EE:FF") as c:
 	print(c.read_system_state())
 ```
 
-Legacy import `from metexon import Zellenradschleuse` still works but returns
-dict structures. Prefer the typed client for new code.
+Prefer the typed `ZellenradschleuseClient` for new code. The typed client
+returns dataclasses with `.to_json()` helpers and accepts typed partial-update
+helpers (e.g. `partial_blower_pid`).
 
 
 - UUID conversion uses the little-endian byte order provided by the firmware macros.
