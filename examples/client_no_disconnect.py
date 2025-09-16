@@ -29,7 +29,7 @@ print(f"Using device: {addr} ({device_info.get('name')})")
 # Create the client once and connect. We do not use a `with` block and
 # we don't call `disconnect()` later. The client will keep the BLE
 # connection and loop thread alive for the life of this process.
-client = ZellenradschleuseClient(addr)
+client = ZellenradschleuseClient(address=addr)
 client.connect()
 
 try:
