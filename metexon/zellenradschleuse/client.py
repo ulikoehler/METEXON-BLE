@@ -13,7 +13,8 @@ from .constants import (
     OTA_UUID,
     MANUAL_CONTROL_UUID,
 )
-from .structures import SystemState, ManualControl, BlowerPID, RGB
+from .structures import SystemState, ManualControl, BlowerPID
+from .update_helpers import partial_system_state
 
 class ZellenradschleuseClient(BaseMetexonDevice):
     """Client with typed return values.
@@ -53,15 +54,15 @@ class ZellenradschleuseClient(BaseMetexonDevice):
         return [c.to_tuple() for c in ss.rgb]
 
     def write_rgb_led(self, colors: Iterable[Iterable[int]]) -> None:
-        # To update the RGB LEDs we modify the SystemState.rgb field and write
-        # the whole SystemState back. This matches firmware behaviour where the
-        # LEDs are part of the system state structure.
-        ss = self.read_system_state()
-        rgb_objs = []
+        # Build a SystemState initialized with sentinel "no change" values and
+        # only set the rgb field to request the LED update. Do not read the
+        # current state first — firmware uses sentinel values to apply partial
+        # updates.
+        rgb_list = []
         for c in colors:
             r, g, b = list(c)
-            rgb_objs.append(RGB(r, g, b))
-        ss.rgb = rgb_objs
+            rgb_list.append((r & 0xFF, g & 0xFF, b & 0xFF))
+        ss = partial_system_state(rgb=rgb_list)
         self.write_system_state(ss)
 
     def wifi_status(self) -> Dict[str, Any]:

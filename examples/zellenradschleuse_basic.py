@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Basic example: discover, connect, read system state, update RGB LED, read back.
 
 Run: python examples/zellenradschleuse_basic.py
