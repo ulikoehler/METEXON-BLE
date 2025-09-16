@@ -4,7 +4,7 @@ from metexon import discover_metexon
 from metexon.zellenradschleuse import ZellenradschleuseClient
 
 # Find devices
-found = discover_metexon(timeout=2.5)
+found = discover_metexon(timeout=5.0)
 if not found:
     raise SystemExit("No Metexon device found")
 addr = found[0]["address"]
