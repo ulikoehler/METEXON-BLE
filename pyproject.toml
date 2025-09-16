@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metexon"
+version = "0.1.0"
+description = "High-level Python client for Metexon BLE devices using bleak"
+authors = [ { name = "Metexon", email = "info@example.com" } ]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["ble", "bleak", "metexon", "iot"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "bleak>=0.21.0",
+]
+
+[project.urls]
+Homepage = "https://metexon.com"
+Repository = "https://github.com/ulikoehler/METEXON-BLE"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["metexon*"]
