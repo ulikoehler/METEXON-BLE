@@ -5,35 +5,22 @@ Shows both the typed client (`ZellenradschleuseClient`) and the legacy convenien
 client (returns dicts) usage patterns. This is intentionally minimal: discover a
 device, read PID, update a single field, and exit.
 """
-from metexon import discover_metexon
+from metexon.discovery import discover_metexon_one
 from metexon.zellenradschleuse import ZellenradschleuseClient
+from metexon.zellenradschleuse.update_helpers import partial_blower_pid
 
 # Quick discovery
-found = discover_metexon(timeout=5.0)
+found = discover_metexon_one(timeout=10.0)
 if not found:
     raise SystemExit("No Metexon device found")
-addr = found[0]["address"]
+addr = found["address"]
 
 # Typed client (preferred)
 with ZellenradschleuseClient(addr) as c:
     pid = c.read_blower_pid()  # returns dataclass-like object
     print("Current PID:", pid)
-    # Example: change only Kp and leave others unchanged
-    new_pid_partial = {"kp": pid.kp * 1.1}
-    c.write_blower_pid(new_pid_partial)
-    print("Wrote partial PID update:", new_pid_partial)
-
-# If you prefer the legacy dict-based helper (from metexon.Zellenradschleuse):
-try:
-    from metexon import Zellenradschleuse
-except Exception:
-    Zellenradschleuse = None
-
-if Zellenradschleuse:
-    DEVICE_MAC = addr
-    with Zellenradschleuse(mac=DEVICE_MAC) as zr:
-        pid_dict = zr.blower_pid()  # returns dict
-        print("Legacy PID (dict):", pid_dict)
-        # Set multiple attributes at once (partial update)
-        zr.set_blower_pid({"kp": pid_dict["kp"] + 0.1, "ki": pid_dict["ki"]})
-        print("Legacy partial update written")
+    # Example: change only Kp and leave others unchanged. Use helper to create
+    # a BlowerPID object with sentinel no-change values for unspecified fields.
+    new_pid = partial_blower_pid(kp=pid.kp * 1.1)
+    c.write_blower_pid(new_pid)
+    print("Wrote partial PID update (typed):", new_pid)

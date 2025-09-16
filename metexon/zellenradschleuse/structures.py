@@ -18,7 +18,11 @@ __all__ = [
 
 _SYSTEM_STATE_STRUCT = struct.Struct('<BffffHHHfBBBBBBiI')
 _MANUAL_CONTROL_STRUCT = struct.Struct('<fffBf8s')
-_BLOWER_PID_STRUCT = struct.Struct('<ffffffHHHHIIIff4f')
+# NOTE: Original firmware struct has 7 consecutive floats before the uint16 fields:
+# kp, ki, kd, target_frequency, current_frequency, last_error, integral_sum
+# The previous format string accidentally omitted 'integral_sum', causing a size mismatch (68 vs 72 bytes).
+# Corrected format adds one more 'f' after the sixth float.
+_BLOWER_PID_STRUCT = struct.Struct('<fffffffHHHHIIIff4f')
 
 @dataclass
 class RGB:
