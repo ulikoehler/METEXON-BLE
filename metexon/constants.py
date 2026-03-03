@@ -39,6 +39,12 @@ _NVS_LIST_BYTES     = [0x77, 0x64, 0x0A, 0xBD, 0xF9, 0xBE, 0xE1, 0x4E, 0x9C, 0xB
 _NVS_GET_BYTES      = [0xE4, 0x17, 0xBF, 0x7E, 0x6B, 0x56, 0xFE, 0x40, 0x9A, 0xD1, 0xE9, 0x9B, 0xA1, 0xE3, 0x28, 0x39]
 _NVS_SET_BYTES      = [0xFD, 0x35, 0xE9, 0xDB, 0x60, 0xF4, 0x1C, 0x44, 0x9D, 0x3D, 0x2B, 0x7F, 0x2B, 0xC4, 0x4B, 0xD9]
 
+# Parameter stream service bytes (generated with generate_bluetooth_uuid.py)
+_PARAM_STREAM_SERVICE_BYTES = [0x22, 0x07, 0x3F, 0x60, 0x75, 0xEA, 0x20, 0x48, 0xA0, 0x9C, 0x9B, 0xD6, 0x0B, 0x56, 0x8C, 0xAD]
+_PARAM_STREAM_LIST_BYTES = [0xDE, 0x09, 0x62, 0x04, 0x87, 0x44, 0xE9, 0x49, 0xB7, 0xAE, 0xD9, 0x16, 0x12, 0xF5, 0x88, 0x2B]
+_PARAM_STREAM_CONTROL_BYTES = [0x30, 0x24, 0xD6, 0x7D, 0xC7, 0xC8, 0x25, 0x46, 0x9B, 0xC8, 0x23, 0xCF, 0x9B, 0xAB, 0x68, 0x9E]
+_PARAM_STREAM_DATA_BYTES = [0xE5, 0x1D, 0x31, 0x6D, 0x2E, 0xBE, 0x82, 0x4C, 0xB7, 0x6B, 0xE7, 0x56, 0xB8, 0x81, 0x45, 0x3E]
+
 METEXON_SERVICE_UUID = _uuid_from_le_bytes(_SERVICE_BYTES)
 # RGB is handled via the SystemState structure; we keep the raw bytes defined for
 # reference but do not expose a separate characteristic UUID in the codebase.
@@ -48,6 +54,10 @@ NVS_SERVICE_UUID = _uuid_from_le_bytes(_NVS_SERVICE_BYTES)
 NVS_LIST_UUID    = _uuid_from_le_bytes(_NVS_LIST_BYTES)
 NVS_GET_UUID     = _uuid_from_le_bytes(_NVS_GET_BYTES)
 NVS_SET_UUID     = _uuid_from_le_bytes(_NVS_SET_BYTES)
+PARAM_STREAM_SERVICE_UUID = _uuid_from_le_bytes(_PARAM_STREAM_SERVICE_BYTES)
+PARAM_STREAM_LIST_UUID = _uuid_from_le_bytes(_PARAM_STREAM_LIST_BYTES)
+PARAM_STREAM_CONTROL_UUID = _uuid_from_le_bytes(_PARAM_STREAM_CONTROL_BYTES)
+PARAM_STREAM_DATA_UUID = _uuid_from_le_bytes(_PARAM_STREAM_DATA_BYTES)
 
 # Canonical UUID strings for remaining characteristics (authoritative forms)
 DEVICE_TYPE_UUID = UUID("68F7B778-6BFA-C2BC-4FDF-97B2CA5CAFA0")
@@ -71,6 +81,10 @@ ALL_UUIDS = {
     "nvs_list": NVS_LIST_UUID,
     "nvs_get": NVS_GET_UUID,
     "nvs_set": NVS_SET_UUID,
+    "param_stream_service": PARAM_STREAM_SERVICE_UUID,
+    "param_stream_list": PARAM_STREAM_LIST_UUID,
+    "param_stream_control": PARAM_STREAM_CONTROL_UUID,
+    "param_stream_data": PARAM_STREAM_DATA_UUID,
 }
 
 __all__ = [
@@ -85,5 +99,9 @@ __all__ = [
     "NVS_LIST_UUID",
     "NVS_GET_UUID",
     "NVS_SET_UUID",
+    "PARAM_STREAM_SERVICE_UUID",
+    "PARAM_STREAM_LIST_UUID",
+    "PARAM_STREAM_CONTROL_UUID",
+    "PARAM_STREAM_DATA_UUID",
     "ALL_UUIDS",
 ]

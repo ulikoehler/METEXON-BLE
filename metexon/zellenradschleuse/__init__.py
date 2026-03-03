@@ -5,3 +5,4 @@ Zellenradschleuse device family.
 """
 from .structures import SystemState, ManualControl, BlowerPID, RGB  # noqa: F401
 from .client import ZellenradschleuseClient  # noqa: F401
+from .parameter_stream_client import ParameterStreamFrame  # noqa: F401
