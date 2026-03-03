@@ -13,6 +13,10 @@ from ..constants import (
     WIFI_UUID,
     OTA_UUID,
     MANUAL_CONTROL_UUID,
+    NVS_SERVICE_UUID,
+    NVS_LIST_UUID,
+    NVS_GET_UUID,
+    NVS_SET_UUID,
 )
 
 __all__ = [
@@ -23,4 +27,8 @@ __all__ = [
     'WIFI_UUID',
     'OTA_UUID',
     'MANUAL_CONTROL_UUID',
+    'NVS_SERVICE_UUID',
+    'NVS_LIST_UUID',
+    'NVS_GET_UUID',
+    'NVS_SET_UUID',
 ]

@@ -15,8 +15,9 @@ from .constants import (
 )
 from .structures import SystemState, ManualControl, BlowerPID
 from .update_helpers import partial_system_state
+from .nvs_client import NVSClient
 
-class ZellenradschleuseClient(BaseMetexonDevice):
+class ZellenradschleuseClient(NVSClient, BaseMetexonDevice):
     """Client with typed return values.
 
     Can be used either with context manager or explicit connect()/disconnect().
